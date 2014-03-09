@@ -36,7 +36,7 @@
 ## Simple talker demo that published std_msgs/Strings messages
 ## to the 'chatter' topic
 
-import roslib; roslib.load_manifest('imu_show')
+import roslib; roslib.load_manifest('imu_publisher')
 import serial
 import random
 import rospy
