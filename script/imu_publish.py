@@ -51,7 +51,7 @@ def talker():
     r = rospy.Rate(200) # 10hz
     myImu = Imu();
 
-    ser = serial.Serial('/dev/ttyUSB0',9600)  # open first serial port
+    ser = serial.Serial('/dev/ttyUSB0',57600)  # open first serial port
     print ser.name          # check which port was really used
     rospy.loginfo("start connecting!")
     isMsg = False
