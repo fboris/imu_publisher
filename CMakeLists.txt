@@ -169,10 +169,3 @@ include_directories(
 
 include_directories(include ${catkin_INCLUDE_DIRS})
 
-add_executable(talker2 src/talker.cpp)
-target_link_libraries(talker2 ${catkin_LIBRARIES})
-add_dependencies(talker2 beginner_tutorials_generate_messages_cpp)
-
-add_executable(listener2 src/listener.cpp)
-target_link_libraries(listener2 ${catkin_LIBRARIES}) 
-add_dependencies(talker2 beginner_tutorials_generate_messages_cpp)
