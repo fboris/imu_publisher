@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-rqt_plot /imu_measurements/linear_acceleration/x:y:z
+rqt_plot /imu_body/linear_acceleration/x:y:z

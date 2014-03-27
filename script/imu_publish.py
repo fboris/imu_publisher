@@ -46,11 +46,13 @@ from std_msgs.msg import String
 from sensor_msgs.msg import Imu
 def talker():
 
-    pub = rospy.Publisher('imu_measurements', Imu)
+    pub = rospy.Publisher('imu_body', Imu)
     rospy.init_node('talker', anonymous=True)
-    r = rospy.Rate(200) # 10hz
-    myImu = Imu();
-
+    r = rospy.Rate(100) # 10hz
+ 
+    Imu_body = Imu();
+    acc = [0.0,0.0,0.0]
+    gyro = [0.0,0.0,0.0]
     ser = serial.Serial('/dev/ttyUSB0',57600)  # open first serial port
     print ser.name          # check which port was really used
     rospy.loginfo("start connecting!")
@@ -60,21 +62,27 @@ def talker():
         ch = ser.read()
 
         if ch == 'I':
-            myImu.header.stamp = rospy.get_rostime()
+            Imu_body.header.stamp = rospy.get_rostime()
             rospy.loginfo("got package!")
             read_buff = ser.read(12);
             print len(read_buff[0:1])
-            myImu.linear_acceleration.x = struct.unpack("h",read_buff[0:2])[0]/16384.0
-            myImu.linear_acceleration.y = struct.unpack("h",read_buff[2:4])[0]/16384.0;
-            myImu.linear_acceleration.z = struct.unpack("h",read_buff[4:6])[0]/16384.0;
-            myImu.angular_velocity.x = struct.unpack("h",read_buff[6:8])[0]/131.0;
-            myImu.angular_velocity.y = struct.unpack("h",read_buff[8:10])[0]/131.0;
-            myImu.angular_velocity.z = struct.unpack("h",read_buff[10:12])[0]/131.0;
+            acc[0] = struct.unpack("h",read_buff[0:2])[0]/16384.0*9.8 
+            acc[1] = struct.unpack("h",read_buff[2:4])[0]/16384.0*9.8 
+            acc[2] = struct.unpack("h",read_buff[4:6])[0]/16384.0*9.8 
+            gyro[0] = struct.unpack("h",read_buff[6:8])[0]/131.0 
+            gyro[1] = struct.unpack("h",read_buff[8:10])[0]/131.0 
+            gyro[2] = struct.unpack("h",read_buff[10:12])[0]/131.0 
+            Imu_body.linear_acceleration.x = -acc[1]
+            Imu_body.linear_acceleration.y = acc[2]
+            Imu_body.linear_acceleration.z = -acc[0]
+            Imu_body.angular_velocity.x = -gyro[1]#-gyro[1]
+            Imu_body.angular_velocity.y = gyro[2]#gyro[2]
+            Imu_body.angular_velocity.z = -gyro[0]#-gyro[0]
 
 
 
-        rospy.loginfo(myImu)
-        pub.publish(myImu)
+        rospy.loginfo(Imu_body)
+        pub.publish(Imu_body)
         r.sleep()
 
     ser.close()    
