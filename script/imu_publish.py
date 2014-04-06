@@ -45,6 +45,19 @@ import struct
 import math
 from std_msgs.msg import String
 from sensor_msgs.msg import Imu
+def checksum(buff):
+    data = buff[0:12]
+    checksum = ord(buff[12])
+    cal_checksum = 0
+    for byte in data:
+        cal_checksum ^= ord(byte)
+
+    print("cal_checksum:{0},rx_checksum:{1}".format(cal_checksum, checksum ));
+    if cal_checksum == checksum:
+        return True
+    else:
+        return False
+
 def talker():
 
     pub = rospy.Publisher('imu_body', Imu)
@@ -69,7 +82,11 @@ def talker():
             if ch == 'I':
                 Imu_body.header.stamp = rospy.get_rostime()
                 #rospy.loginfo("got package!")
-                read_buff = ser.read(12);
+                read_buff = ser.read(13);
+                if checksum(read_buff) == False:
+                    rospy.loginfo("no valid data!")
+                    continue
+
                 #print len(read_buff[0:1])
                 acc[0] = struct.unpack("h",read_buff[0:2])[0]/16384.0*9.8 
                 acc[1] = struct.unpack("h",read_buff[2:4])[0]/16384.0*9.8 
