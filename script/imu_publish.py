@@ -52,7 +52,6 @@ def checksum(buff):
     for byte in data:
         cal_checksum ^= ord(byte)
 
-    print("cal_checksum:{0},rx_checksum:{1}".format(cal_checksum, checksum ));
     if cal_checksum == checksum:
         return True
     else:
@@ -63,7 +62,8 @@ def talker():
     pub = rospy.Publisher('imu_body', Imu)
     rospy.init_node('talker', anonymous=True)
     r = rospy.Rate(1000) # 10hz
- 
+    receive_cnt = 0.0
+    fail_cnt = 0.0
     Imu_body = Imu();
     acc = [0.0,0.0,0.0]
     gyro = [0.0,0.0,0.0]
@@ -73,18 +73,21 @@ def talker():
     rospy.loginfo("start connecting!")
     isMsg = False
     buff = []
+    receive_cnt = 0
+    fail_cnt = 0
     with open('./imu.txt', 'w') as f:
         f.write("This imu data is record in ENU coordinate\r\n")
         f.write("acc_x\tacc_y\tacc_z\tgyro_x\tgyro_y\tgryo_z\r\n")
-        while not rospy.is_shutdown():
+        while not rospy.is_shutdown():      
             ch = ser.read()
 
             if ch == 'I':
                 Imu_body.header.stamp = rospy.get_rostime()
                 #rospy.loginfo("got package!")
                 read_buff = ser.read(13);
+                receive_cnt = receive_cnt + 1
                 if checksum(read_buff) == False:
-                    rospy.loginfo("no valid data!")
+                    fail_cnt = fail_cnt + 1
                     continue
 
                 #print len(read_buff[0:1])
@@ -107,11 +110,15 @@ def talker():
                     Imu_body.angular_velocity.x,
                     Imu_body.angular_velocity.y,
                     Imu_body.angular_velocity.z))
+                pub.publish(Imu_body)
 
-
-            #rospy.loginfo(Imu_body)
-            pub.publish(Imu_body)
+        
+            if receive_cnt >0:
+                rospy.loginfo("fail:{0},total:{1},current rx:{2:.2f}".format(
+                    fail_cnt, receive_cnt, float(fail_cnt)/receive_cnt) )
+            
             r.sleep()
+        
     f.closed
 
     ser.close()    
@@ -121,5 +128,6 @@ if __name__ == '__main__':
 
     try:
         talker()
-    except rospy.ROSInterruptException: pass
+    except rospy.ROSInterruptException: 
+        print("Interrup!")
 
