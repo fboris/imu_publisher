@@ -42,48 +42,60 @@ import random
 import rospy
 import string
 import struct
+import math
 from std_msgs.msg import String
 from sensor_msgs.msg import Imu
 def talker():
 
     pub = rospy.Publisher('imu_body', Imu)
     rospy.init_node('talker', anonymous=True)
-    r = rospy.Rate(100) # 10hz
+    r = rospy.Rate(1000) # 10hz
  
     Imu_body = Imu();
     acc = [0.0,0.0,0.0]
     gyro = [0.0,0.0,0.0]
-    ser = serial.Serial('/dev/ttyUSB0',57600)  # open first serial port
+
+    ser = serial.Serial('/dev/ttyUSB0',230400)  # open first serial port
     print ser.name          # check which port was really used
     rospy.loginfo("start connecting!")
     isMsg = False
     buff = []
-    while not rospy.is_shutdown():
-        ch = ser.read()
+    with open('./imu.txt', 'w') as f:
+        f.write("This imu data is record in ENU coordinate\r\n")
+        f.write("acc_x\tacc_y\tacc_z\tgyro_x\tgyro_y\tgryo_z\r\n")
+        while not rospy.is_shutdown():
+            ch = ser.read()
 
-        if ch == 'I':
-            Imu_body.header.stamp = rospy.get_rostime()
-            rospy.loginfo("got package!")
-            read_buff = ser.read(12);
-            print len(read_buff[0:1])
-            acc[0] = struct.unpack("h",read_buff[0:2])[0]/16384.0*9.8 
-            acc[1] = struct.unpack("h",read_buff[2:4])[0]/16384.0*9.8 
-            acc[2] = struct.unpack("h",read_buff[4:6])[0]/16384.0*9.8 
-            gyro[0] = struct.unpack("h",read_buff[6:8])[0]/131.0 
-            gyro[1] = struct.unpack("h",read_buff[8:10])[0]/131.0 
-            gyro[2] = struct.unpack("h",read_buff[10:12])[0]/131.0 
-            Imu_body.linear_acceleration.x = -acc[1]
-            Imu_body.linear_acceleration.y = acc[2]
-            Imu_body.linear_acceleration.z = -acc[0]
-            Imu_body.angular_velocity.x = -gyro[1]#-gyro[1]
-            Imu_body.angular_velocity.y = gyro[2]#gyro[2]
-            Imu_body.angular_velocity.z = -gyro[0]#-gyro[0]
+            if ch == 'I':
+                Imu_body.header.stamp = rospy.get_rostime()
+                #rospy.loginfo("got package!")
+                read_buff = ser.read(12);
+                #print len(read_buff[0:1])
+                acc[0] = struct.unpack("h",read_buff[0:2])[0]/16384.0*9.8 
+                acc[1] = struct.unpack("h",read_buff[2:4])[0]/16384.0*9.8 
+                acc[2] = struct.unpack("h",read_buff[4:6])[0]/16384.0*9.8 
+                gyro[0] = struct.unpack("h",read_buff[6:8])[0]/131.0 
+                gyro[1] = struct.unpack("h",read_buff[8:10])[0]/131.0 
+                gyro[2] = struct.unpack("h",read_buff[10:12])[0]/131.0 
+                Imu_body.linear_acceleration.x = -acc[1]
+                Imu_body.linear_acceleration.y = acc[2]
+                Imu_body.linear_acceleration.z = -acc[0]
+                Imu_body.angular_velocity.x = -gyro[1]*math.pi/180#-gyro[1]
+                Imu_body.angular_velocity.y = gyro[2]*math.pi/180#gyro[2]
+                Imu_body.angular_velocity.z = -gyro[0]*math.pi/180#-gyro[0]
+                f.write("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\r\n".format(
+                    Imu_body.linear_acceleration.x,
+                    Imu_body.linear_acceleration.x,
+                    Imu_body.linear_acceleration.x,
+                    Imu_body.angular_velocity.x,
+                    Imu_body.angular_velocity.y,
+                    Imu_body.angular_velocity.z))
 
 
-
-        rospy.loginfo(Imu_body)
-        pub.publish(Imu_body)
-        r.sleep()
+            #rospy.loginfo(Imu_body)
+            pub.publish(Imu_body)
+            r.sleep()
+    f.closed
 
     ser.close()    
         
