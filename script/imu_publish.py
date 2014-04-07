@@ -114,8 +114,8 @@ def talker():
 
         
             if receive_cnt >0:
-                rospy.loginfo("fail:{0},total:{1},current rx:{2:.2f}".format(
-                    fail_cnt, receive_cnt, float(fail_cnt)/receive_cnt) )
+                rospy.loginfo("fail cnt:{0}, total cnt:{1}, percent:{2:.2f}%".format(
+                    fail_cnt, receive_cnt, 100*float(fail_cnt)/receive_cnt))
             
             r.sleep()
         
