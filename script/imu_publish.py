@@ -91,12 +91,12 @@ def talker():
                     continue
 
                 #print len(read_buff[0:1])
-                acc[0] = struct.unpack("h",read_buff[0:2])[0]/16384.0*9.8 
-                acc[1] = struct.unpack("h",read_buff[2:4])[0]/16384.0*9.8 
-                acc[2] = struct.unpack("h",read_buff[4:6])[0]/16384.0*9.8 
-                gyro[0] = struct.unpack("h",read_buff[6:8])[0]/131.0 
-                gyro[1] = struct.unpack("h",read_buff[8:10])[0]/131.0 
-                gyro[2] = struct.unpack("h",read_buff[10:12])[0]/131.0 
+                acc[0] = float(struct.unpack("h",read_buff[0:2])[0])/16384.0*9.8 
+                acc[1] = float(struct.unpack("h",read_buff[2:4])[0])/16384.0*9.8 
+                acc[2] = float(struct.unpack("h",read_buff[4:6])[0])/16384.0*9.8 
+                gyro[0] = float(struct.unpack("h",read_buff[6:8])[0])/131.0 
+                gyro[1] = float(struct.unpack("h",read_buff[8:10])[0])/131.0 
+                gyro[2] = float(struct.unpack("h",read_buff[10:12])[0])/131.0 
                 Imu_body.linear_acceleration.x = -acc[1]
                 Imu_body.linear_acceleration.y = acc[2]
                 Imu_body.linear_acceleration.z = -acc[0]
@@ -105,8 +105,8 @@ def talker():
                 Imu_body.angular_velocity.z = -gyro[0]*math.pi/180#-gyro[0]
                 f.write("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\r\n".format(
                     Imu_body.linear_acceleration.x,
-                    Imu_body.linear_acceleration.x,
-                    Imu_body.linear_acceleration.x,
+                    Imu_body.linear_acceleration.y,
+                    Imu_body.linear_acceleration.z,
                     Imu_body.angular_velocity.x,
                     Imu_body.angular_velocity.y,
                     Imu_body.angular_velocity.z))
